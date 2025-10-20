@@ -69,3 +69,5 @@ macos/Flutter/GeneratedPluginRegistrant.swift
 # OS/에디터 기타
 Thumbs.db
 
+# Flutter specific
+.metadata
