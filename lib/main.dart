@@ -1,3 +1,5 @@
+// ignore_for_file: prefer_const_constructors, prefer_const_literals_to_create_immutables
+
 import 'package:english_words/english_words.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -41,8 +43,8 @@ class MyAppState extends ChangeNotifier {
 
   var favorites = <WordPair>[];
 
-  void toggleFavorite(WordPair? pair) {
-    pair ??= current;
+  void toggleFavorite([WordPair? pair]) {
+    pair = pair ?? current;
     if (favorites.contains(pair)) {
       favorites.remove(pair);
     } else {
@@ -67,6 +69,8 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
+    var colorScheme = Theme.of(context).colorScheme;
+
     Widget page;
     switch (selectedIndex) {
       case 0:
@@ -79,53 +83,77 @@ class _MyHomePageState extends State<MyHomePage> {
         throw UnimplementedError('no widget for $selectedIndex');
     }
 
+    // The container for the current page, with its background color
+    // and subtle switching animation.
     var mainArea = ColoredBox(
-        color: Theme.of(context).colorScheme.surfaceVariant,
-        child: AnimatedSwitcher(
-            duration: Duration(milliseconds: 200), child: page));
+      color: colorScheme.surfaceVariant,
+      child: AnimatedSwitcher(
+        duration: Duration(milliseconds: 200),
+        child: page,
+      ),
+    );
 
     return Scaffold(
-      body: LayoutBuilder(builder: (context, constraints) {
-        if (constraints.maxWidth < 450) {
-          return Column(children: [
-            Expanded(child: mainArea),
-            SafeArea(
-                child: BottomNavigationBar(
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          if (constraints.maxWidth < 450) {
+            // Use a more mobile-friendly layout with BottomNavigationBar
+            // on narrow screens.
+            return Column(
+              children: [
+                Expanded(child: mainArea),
+                SafeArea(
+                  child: BottomNavigationBar(
                     items: [
-                  BottomNavigationBarItem(
-                      icon: Icon(Icons.home), label: 'Home'),
-                  BottomNavigationBarItem(
-                      icon: Icon(Icons.favorite), label: 'Favorites'),
-                ],
+                      BottomNavigationBarItem(
+                        icon: Icon(Icons.home),
+                        label: 'Home',
+                      ),
+                      BottomNavigationBarItem(
+                        icon: Icon(Icons.favorite),
+                        label: 'Favorites',
+                      ),
+                    ],
                     currentIndex: selectedIndex,
                     onTap: (value) {
                       setState(() {
                         selectedIndex = value;
                       });
-                    }))
-          ]);
-        } else {
-          return Row(children: [
-            SafeArea(
-                child: NavigationRail(
-              extended: constraints.maxWidth >= 600,
-              destinations: [
-                NavigationRailDestination(
-                    icon: Icon(Icons.home), label: Text('Home')),
-                NavigationRailDestination(
-                    icon: Icon(Icons.favorite), label: Text('Favorites')),
+                    },
+                  ),
+                )
               ],
-              selectedIndex: selectedIndex,
-              onDestinationSelected: (value) {
-                setState(() {
-                  selectedIndex = value;
-                });
-              },
-            )),
-            Expanded(child: mainArea),
-          ]);
-        }
-      }),
+            );
+          } else {
+            return Row(
+              children: [
+                SafeArea(
+                  child: NavigationRail(
+                    extended: constraints.maxWidth >= 600,
+                    destinations: [
+                      NavigationRailDestination(
+                        icon: Icon(Icons.home),
+                        label: Text('Home'),
+                      ),
+                      NavigationRailDestination(
+                        icon: Icon(Icons.favorite),
+                        label: Text('Favorites'),
+                      ),
+                    ],
+                    selectedIndex: selectedIndex,
+                    onDestinationSelected: (value) {
+                      setState(() {
+                        selectedIndex = value;
+                      });
+                    },
+                  ),
+                ),
+                Expanded(child: mainArea),
+              ],
+            );
+          }
+        },
+      ),
     );
   }
 }
@@ -147,6 +175,11 @@ class GeneratorPage extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
+          Expanded(
+            flex: 3,
+            child: HistoryListView(),
+          ),
+          SizedBox(height: 10),
           BigCard(pair: pair),
           SizedBox(height: 10),
           Row(
@@ -154,7 +187,7 @@ class GeneratorPage extends StatelessWidget {
             children: [
               ElevatedButton.icon(
                 onPressed: () {
-                  appState.toggleFavorite(pair);
+                  appState.toggleFavorite();
                 },
                 icon: Icon(icon),
                 label: Text('Like'),
@@ -168,6 +201,7 @@ class GeneratorPage extends StatelessWidget {
               ),
             ],
           ),
+          Spacer(flex: 2),
         ],
       ),
     );
@@ -195,6 +229,8 @@ class BigCard extends StatelessWidget {
         padding: const EdgeInsets.all(20),
         child: AnimatedSize(
           duration: Duration(milliseconds: 200),
+          // Make sure that the compound word wraps correctly when the window
+          // is too narrow.
           child: MergeSemantics(
             child: Wrap(
               children: [
@@ -232,8 +268,8 @@ class FavoritesPage extends StatelessWidget {
       children: [
         Padding(
           padding: const EdgeInsets.all(30),
-          child: Text('좋아요 갯수:  '
-              '${appState.favorites.length}개'),
+          child: Text('좋아요 갯수 '
+              '${appState.favorites.length} 개',),
         ),
         Expanded(
           // Make better use of wide windows with a grid.
